@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () { return view('welcome'); })->name('home.landing');
 Route::get('/login',  [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])->name('verify-otp');
 Route::post('/logout',[AuthController::class, 'logout'])->name('logout');
 
 // ─── ADMIN ──────────────────────────────────────────────────────────
@@ -46,6 +47,7 @@ Route::prefix('teacher')->name('teacher.')->middleware('role:teacher')->group(fu
     Route::get('/quiz/{code}/view',             [TeacherController::class, 'viewQuiz'])->name('quiz.view');
     Route::get('/past-quizzes',                 [TeacherController::class, 'pastQuizzes'])->name('past-quizzes');
     Route::get('/past-quiz/{code}/questions',   [TeacherController::class, 'pastQuizQuestions'])->name('past-quiz.questions');
+    Route::get('/quiz-results/{quizId}',        [TeacherController::class, 'quizResults'])->name('quiz.results');
     // ─── PROCTORING REPORTS (Teacher) ───────────────────────
     Route::get('/proctor/reports',          [ProctorController::class, 'reports'])->name('proctor.reports');
     Route::get('/proctor/reports/{id}',     [ProctorController::class, 'reportDetail'])->name('proctor.report-detail');

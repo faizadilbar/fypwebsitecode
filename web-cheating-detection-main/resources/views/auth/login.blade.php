@@ -711,7 +711,119 @@
             pwField.type   = isHidden ? 'text' : 'password';
             eyeIcon.className = isHidden ? 'fas fa-eye-slash' : 'fas fa-eye';
         });
+
+        function closeOtpModal() {
+            document.getElementById('otpModalOverlay').style.display = 'none';
+        }
+
+        async function handleOtpSubmit(e) {
+            e.preventDefault();
+            const btn = document.getElementById('modalVerifyBtn');
+            const alertBox = document.getElementById('otpModalAlert');
+            const email = document.getElementById('modal_otp_email').value;
+            const otp = document.getElementById('modal_otp_code').value;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying Code...';
+            alertBox.style.display = 'none';
+
+            try {
+                const res = await fetch("{{ route('verify-otp') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ email: email, otp: otp })
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.status) {
+                    alertBox.style.display = 'block';
+                    alertBox.style.background = '#ECFDF5';
+                    alertBox.style.color = '#047857';
+                    alertBox.style.border = '1px solid #A7F3D0';
+                    alertBox.innerHTML = '<i class="fas fa-check-circle"></i> ' + (data.message || 'Email verified successfully! Logging you in...');
+
+                    setTimeout(() => {
+                        const loginEmailField = document.getElementById('email_field');
+                        if (loginEmailField) loginEmailField.value = email;
+                        const loginForm = document.getElementById('loginForm');
+                        if (loginForm) loginForm.submit();
+                    }, 1200);
+                } else {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-check-circle"></i> Verify OTP & Sign In';
+                    alertBox.style.display = 'block';
+                    alertBox.style.background = '#FEF2F2';
+                    alertBox.style.color = '#991B1B';
+                    alertBox.style.border = '1px solid #FECACA';
+                    alertBox.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + (data.message || 'Invalid OTP code.');
+                }
+            } catch (err) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check-circle"></i> Verify OTP & Sign In';
+                alertBox.style.display = 'block';
+                alertBox.style.background = '#FEF2F2';
+                alertBox.style.color = '#991B1B';
+                alertBox.style.border = '1px solid #FECACA';
+                alertBox.innerHTML = '<i class="fas fa-exclamation-circle"></i> Verification failed: ' + err.message;
+            }
+        }
     </script>
+
+    <!-- ═══ OTP VERIFICATION POPUP MODAL ═══ -->
+    <div id="otpModalOverlay" style="display: {{ session('show_otp_modal') ? 'flex' : 'none' }}; position: fixed; inset: 0; background: rgba(15,23,42,0.65); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 99999; align-items: center; justify-content: center; padding: 20px;">
+        <div style="background: #ffffff; border-radius: 24px; max-width: 440px; width: 100%; padding: 32px 28px; box-shadow: 0 24px 48px rgba(0,0,0,0.25); text-align: center; position: relative; animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
+            
+            <button type="button" onclick="closeOtpModal()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 18px; color: var(--text-m); cursor: pointer; padding: 6px;">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #3D52A0, #7091E6); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: #fff; font-size: 26px; box-shadow: 0 8px 20px rgba(61,82,160,0.3);">
+                <i class="fas fa-shield-halved"></i>
+            </div>
+
+            <h3 style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 22px; font-weight: 800; color: var(--text-h); margin-bottom: 8px;">
+                Email Verification Required
+            </h3>
+
+            <p style="font-size: 13.5px; color: var(--text-b); line-height: 1.55; margin-bottom: 24px;">
+                Your account email is unverified. An OTP code was sent to your Gmail inbox. Enter the 6-digit code below to verify and complete login.
+            </p>
+
+            <div id="otpModalAlert" style="display: none; padding: 12px 16px; border-radius: 12px; font-size: 13px; font-weight: 600; margin-bottom: 18px;"></div>
+
+            <form id="otpVerifyForm" onsubmit="handleOtpSubmit(event)">
+                <div style="margin-bottom: 16px; text-align: left;">
+                    <label style="font-size: 12px; font-weight: 700; color: var(--text-h); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; display: block;">
+                        Google Email
+                    </label>
+                    <input type="email" id="modal_otp_email" value="{{ session('unverified_email') ?? old('email') }}" required class="f-input" placeholder="Enter your email" style="width: 100%; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 12px;">
+                </div>
+
+                <div style="margin-bottom: 24px; text-align: left;">
+                    <label style="font-size: 12px; font-weight: 700; color: var(--text-h); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; display: block;">
+                        6-Digit OTP Code
+                    </label>
+                    <input type="text" id="modal_otp_code" required maxlength="6" pattern="[0-9]{6}" placeholder="e.g. 129407" style="width: 100%; padding: 14px; border: 2px dashed #7091E6; border-radius: 14px; font-size: 24px; font-weight: 800; letter-spacing: 6px; text-align: center; color: #3D52A0; background: #F8FAFC; outline: none;">
+                </div>
+
+                <button type="submit" id="modalVerifyBtn" style="width: 100%; padding: 14px; border: none; border-radius: 14px; background: linear-gradient(135deg, #3D52A0, #7091E6); color: #fff; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 8px 20px rgba(61,82,160,0.25); transition: 0.2s;">
+                    <i class="fas fa-check-circle"></i> Verify OTP & Sign In
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <style>
+        @keyframes modalPop {
+            0% { opacity: 0; transform: scale(0.85); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+    </style>
 
 </body>
 </html>

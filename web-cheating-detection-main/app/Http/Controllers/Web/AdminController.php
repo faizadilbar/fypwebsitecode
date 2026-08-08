@@ -86,7 +86,11 @@ class AdminController extends Controller
         ]);
 
         if ($data['status'] ?? false) {
-            return back()->with('success', 'Teacher added successfully!');
+            $msg = $data['message'] ?? 'Teacher added successfully!';
+            if (!empty($data['otp_code'])) {
+                $msg .= ' [OTP Code: ' . $data['otp_code'] . ']';
+            }
+            return back()->with('success', $msg);
         }
 
         $msg = $data['message'] ?? 'Failed to add teacher';
@@ -124,7 +128,11 @@ class AdminController extends Controller
         ]);
 
         if ($data['status'] ?? false) {
-            return back()->with('success', 'Student added successfully!');
+            $msg = $data['message'] ?? 'Student registered successfully in LMS!';
+            if (!empty($data['otp_code'])) {
+                $msg .= ' [OTP Code: ' . $data['otp_code'] . ']';
+            }
+            return back()->with('success', $msg);
         }
 
         $msg = $data['message'] ?? 'Failed to add student';

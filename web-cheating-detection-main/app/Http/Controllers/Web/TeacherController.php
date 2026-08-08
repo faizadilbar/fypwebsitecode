@@ -339,4 +339,34 @@ class TeacherController extends Controller
         $quiz = $res->json();
         return view('teacher.view-quiz', compact('quiz', 'code', 'teacher'));
     }
+
+    // ── QUIZ RESULTS REPORT: GET /api/teacher/quiz-results/{quizId}
+    public function quizResults(string $quizId)
+    {
+        $teacher = session('user');
+        $resultsData = [];
+        $quiz = [];
+        $students = [];
+        $error = null;
+
+        try {
+            $res = Http::withOptions($this->curlOpts)->timeout(15)->withHeaders([
+                'Content-Type' => 'application/json',
+                'Accept'       => 'application/json',
+            ])->get("{$this->api}/teacher/quiz-results/{$quizId}");
+
+            $resultsData = $res->json();
+            if ($resultsData && (isset($resultsData['status']) && $resultsData['status'] == true)) {
+                $quiz = $resultsData['quiz'] ?? [];
+                $students = $resultsData['data'] ?? [];
+            } else {
+                $error = $resultsData['message'] ?? 'Could not fetch quiz results report.';
+            }
+        } catch (\Exception $e) {
+            \Log::warning('quizResults API error/timeout: ' . $e->getMessage());
+            $error = 'Could not load quiz results report.';
+        }
+
+        return view('teacher.quiz-results', compact('teacher', 'quiz', 'students', 'resultsData', 'quizId', 'error'));
+    }
 }

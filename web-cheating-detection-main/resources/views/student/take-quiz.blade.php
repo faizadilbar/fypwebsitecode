@@ -490,7 +490,7 @@
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                 <div class="cand-name">{{ $studentName }}</div>
                 <span class="secure-badge">SECURE</span>
-                <button type="button" id="viewLiveProctorBtn" onclick="toggleProctorModal(true)" style="background:rgba(61,82,160,0.1); border:1px solid rgba(61,82,160,0.25); color:var(--deep); font-size:10px; font-weight:800; padding:4px 10px; border-radius:6px; cursor:pointer; display:flex; align-items:center; gap:5px; margin-left:6px; font-family:'Bricolage Grotesque',sans-serif; text-transform:uppercase; letter-spacing:0.5px;">
+                <button type="button" id="viewLiveProctorBtn" onclick="toggleProctorModal(true)" style="display:none !important; background:rgba(61,82,160,0.1); border:1px solid rgba(61,82,160,0.25); color:var(--deep); font-size:10px; font-weight:800; padding:4px 10px; border-radius:6px; cursor:pointer; align-items:center; gap:5px; margin-left:6px; font-family:'Bricolage Grotesque',sans-serif; text-transform:uppercase; letter-spacing:0.5px;">
                     <i class="fas fa-chart-line"></i> Live Behavior
                 </button>
             </div>
@@ -657,7 +657,7 @@
 </div>
 
 <!-- ══ LIVE PROCTOR BEHAVIOR SHEET ══════════════════════ -->
-<div class="overlay" id="proctorModalOverlay">
+<div class="overlay" id="proctorModalOverlay" style="display:none !important;">
     <div class="modal-sheet" style="max-width: 480px; border-radius: 24px 24px 0 0;">
         <div class="sheet-handle"></div>
         <div class="sheet-title" style="display:flex; align-items:center; justify-content:center; gap:8px;"><i class="fas fa-shield-halved" style="color:var(--deep);"></i> Live Session Behavior</div>

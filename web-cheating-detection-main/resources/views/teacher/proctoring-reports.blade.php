@@ -227,43 +227,43 @@
                 <thead>
                     <tr>
                         <th>Student</th>
-                        <th>Course / Quiz</th>
-                        <th>Exam Date</th>
-                        <th style="text-align:center;">Risk Score</th>
-                        <th>Alarm Level</th>
-                        <th style="text-align:center;">Violations</th>
+                        <th>Quiz & Course</th>
+                        <th>Exam Date & Time</th>
+                        <th style="text-align:center;">Avg / Max Risk</th>
+                        <th style="text-align:center;">Total Blinks</th>
+                        <th style="text-align:center;">Infractions (Gaze • Head • No Face • Multi)</th>
+                        <th style="text-align:center;">Cheating Status</th>
                         <th style="text-align:right;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($sessions as $s)
                         @php
-                            $studentName = $s['student_name'] ?? 'Student';
-                            $initials    = strtoupper(substr($studentName, 0, 1));
+                            $studentName   = $s['student_name'] ?? 'Student';
+                            $initials      = strtoupper(substr($studentName, 0, 1));
 
-                            $gazeCount   = (int)($s['gaze_away_count'] ?? 0);
-                            $headCount   = (int)($s['head_turn_count'] ?? 0);
-                            $noFaceCount = (int)($s['no_face_count'] ?? 0);
-                            $multiCount  = (int)($s['multiple_face_count'] ?? 0);
+                            $gazeCount     = (int)($s['gaze_away_count'] ?? 0);
+                            $headCount     = (int)($s['head_turn_count'] ?? 0);
+                            $noFaceCount   = (int)($s['no_face_count'] ?? 0);
+                            $multiCount    = (int)($s['multiple_face_count'] ?? 0);
+                            $blinksCount   = (int)($s['total_blinks'] ?? $s['blink_count'] ?? 0);
 
-                            $rawRisk     = (float)($s['risk_score'] ?? $s['max_risk_score'] ?? $s['avg_risk_score'] ?? 0);
-                            if ($rawRisk <= 0 && ($gazeCount > 0 || $headCount > 0 || $noFaceCount > 0 || $multiCount > 0)) {
-                                $rawRisk = min(100, ($gazeCount * 10) + ($headCount * 8) + ($noFaceCount * 20) + ($multiCount * 25));
-                            }
-                            $riskScore   = round($rawRisk);
+                            $maxRisk       = round((float)($s['max_risk_score'] ?? $s['risk_score'] ?? 0), 1);
+                            $avgRisk       = round((float)($s['avg_risk_score'] ?? $s['risk_score'] ?? 0), 1);
+                            $cheatingStatus = strtolower($s['cheating_status'] ?? ($maxRisk >= 50 ? 'suspicious' : 'clean'));
 
-                            $alarmLevel  = strtolower($s['alarm_level'] ?? 'none');
-                            if (($alarmLevel === 'none' || $alarmLevel === '' || $alarmLevel === 'calibrating') && $riskScore > 0) {
-                                if ($riskScore >= 75) $alarmLevel = 'critical';
-                                elseif ($riskScore >= 50) $alarmLevel = 'high';
-                                elseif ($riskScore >= 25) $alarmLevel = 'medium';
+                            $alarmLevel    = strtolower($s['alarm_level'] ?? 'none');
+                            if (($alarmLevel === 'none' || $alarmLevel === '' || $alarmLevel === 'calibrating') && $maxRisk > 0) {
+                                if ($maxRisk >= 75) $alarmLevel = 'critical';
+                                elseif ($maxRisk >= 50) $alarmLevel = 'high';
+                                elseif ($maxRisk >= 25) $alarmLevel = 'medium';
                                 else $alarmLevel = 'low';
                             }
 
-                            $violations  = $s['total_violations'] ?? $s['total_alarms'] ?? ($gazeCount + $headCount + $noFaceCount + $multiCount);
+                            $violations    = $s['total_violations'] ?? $s['total_alarms'] ?? ($gazeCount + $headCount + $noFaceCount + $multiCount);
 
                             $riskClass = 'risk-none';
-                            if ($alarmLevel === 'critical') $riskClass = 'risk-critical';
+                            if ($alarmLevel === 'critical' || $cheatingStatus === 'suspicious') $riskClass = 'risk-critical';
                             elseif ($alarmLevel === 'high') $riskClass = 'risk-high';
                             elseif ($alarmLevel === 'medium') $riskClass = 'risk-medium';
                             elseif ($alarmLevel === 'low') $riskClass = 'risk-low';
@@ -280,25 +280,38 @@
                             </td>
                             <td>
                                 <div style="font-weight:600; color:var(--text1);">{{ $s['course_name'] ?? 'Unknown Course' }}</div>
-                                <div style="font-size:11px; color:var(--text3); margin-top:2px;">Quiz Code: <strong style="color:var(--mid);">{{ $s['quiz_code'] ?? '' }}</strong></div>
+                                <div style="font-size:11px; color:var(--text3); margin-top:2px;">Code: <strong style="color:var(--mid);">{{ $s['quiz_code'] ?? 'N/A' }}</strong></div>
                             </td>
                             <td>
-                                <div style="font-weight:500;">{{ $s['exam_date'] ?? '' }}</div>
-                                <div style="font-size:11px; color:var(--text3); margin-top:2px;">{{ $s['start_time'] ?? '' }} - {{ $s['end_time'] ?? '' }}</div>
+                                <div style="font-weight:600; color:var(--text1);">{{ $s['exam_date'] ?? 'N/A' }}</div>
+                                <div style="font-size:11px; color:var(--text3); margin-top:2px;"><i class="far fa-clock"></i> {{ $s['start_time'] ?? 'N/A' }} - {{ $s['end_time'] ?? 'N/A' }}</div>
                             </td>
                             <td style="text-align:center;">
-                                <strong style="font-size:15px; color: {{ $alarmLevel === 'critical' || $alarmLevel === 'high' ? '#EF4444' : ($alarmLevel === 'medium' ? '#D97706' : '#059669') }};">
-                                    {{ $riskScore }}%
-                                </strong>
+                                <div>
+                                    <strong style="font-size:14px; color: {{ $maxRisk >= 50 ? '#EF4444' : '#059669' }};">
+                                        Max: {{ $maxRisk }}%
+                                    </strong>
+                                </div>
+                                <div style="font-size:11px; color:var(--text3); margin-top:2px;">
+                                    Avg: {{ $avgRisk }}%
+                                </div>
                             </td>
-                            <td>
-                                <span class="risk-badge {{ $riskClass }}">
-                                    {{ $alarmLevel ?: 'None' }}
+                            <td style="text-align:center;">
+                                <span style="font-weight:700; color:#3D52A0; background:rgba(61,82,160,0.08); padding:4px 10px; border-radius:8px; font-size:12px;">
+                                    {{ $blinksCount }}
                                 </span>
                             </td>
                             <td style="text-align:center;">
-                                <span style="font-weight:700; color: {{ $violations > 0 ? '#EF4444' : 'var(--text3)' }};">
-                                    {{ $violations }}
+                                <div style="font-size:12px; font-weight:700; display:flex; justify-content:center; gap:6px; flex-wrap:wrap;">
+                                    <span title="Gaze Away" style="background:rgba(239,68,68,0.08); color:#EF4444; padding:2px 6px; border-radius:6px;">👁 {{ $gazeCount }}</span>
+                                    <span title="Head Turns" style="background:rgba(245,158,11,0.08); color:#D97706; padding:2px 6px; border-radius:6px;">👤 {{ $headCount }}</span>
+                                    <span title="No Face" style="background:rgba(239,68,68,0.08); color:#DC2626; padding:2px 6px; border-radius:6px;">🚫 {{ $noFaceCount }}</span>
+                                    <span title="Multiple Faces" style="background:rgba(147,51,234,0.08); color:#9333EA; padding:2px 6px; border-radius:6px;">👥 {{ $multiCount }}</span>
+                                </div>
+                            </td>
+                            <td style="text-align:center;">
+                                <span class="risk-badge {{ $riskClass }}">
+                                    {{ strtoupper($cheatingStatus) }}
                                 </span>
                             </td>
                             <td style="text-align:right;">

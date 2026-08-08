@@ -316,7 +316,8 @@ class ProctorController extends Controller
             // $items[0] is the row with the MAXIMUM risk score & highest predictions!
             $bestRow = $items[0];
 
-            $maxRisk  = (float)($bestRow['risk_score'] ?? $bestRow['max_risk_score'] ?? $bestRow['avg_risk_score'] ?? 0);
+            $maxRisk  = 0.0;
+            $sumAvgRisk = 0.0;
             $maxLevel = strtolower($bestRow['alarm_level'] ?? 'none');
             $gaze     = 0;
             $head     = 0;
@@ -324,11 +325,21 @@ class ProctorController extends Controller
             $multi    = 0;
             $blinks   = 0;
             $totV     = 0;
+            $hasSuspicious = false;
+            $countItems = count($items);
 
             foreach ($items as $item) {
-                $r = (float)($item['risk_score'] ?? $item['max_risk_score'] ?? $item['avg_risk_score'] ?? 0);
+                $r = (float)($item['max_risk_score'] ?? $item['risk_score'] ?? $item['avg_risk_score'] ?? 0);
                 if ($r > $maxRisk) {
                     $maxRisk = $r;
+                }
+
+                $avgR = (float)($item['avg_risk_score'] ?? $item['risk_score'] ?? $item['max_risk_score'] ?? 0);
+                $sumAvgRisk += $avgR;
+
+                $status = strtolower($item['cheating_status'] ?? '');
+                if ($status === 'suspicious') {
+                    $hasSuspicious = true;
                 }
 
                 $lvl = strtolower($item['alarm_level'] ?? 'none');
@@ -340,23 +351,29 @@ class ProctorController extends Controller
                 $head   += (int)($item['head_turn_count'] ?? 0);
                 $noFace += (int)($item['no_face_count'] ?? 0);
                 $multi  += (int)($item['multiple_face_count'] ?? 0);
-                $blinks += (int)($item['blink_count'] ?? $item['total_blinks'] ?? 0);
+                $blinks += (int)($item['total_blinks'] ?? $item['blink_count'] ?? 0);
 
                 $itemViolations = (int)($item['total_violations'] ?? $item['total_alarms'] ?? (($item['gaze_away_count']??0) + ($item['head_turn_count']??0) + ($item['no_face_count']??0) + ($item['multiple_face_count']??0)));
                 $totV += $itemViolations;
             }
 
-            // Populate the best row with maximum metrics across all attempts
-            $bestRow['risk_score']          = round(max($maxRisk, (float)($bestRow['risk_score'] ?? $bestRow['max_risk_score'] ?? 0)));
+            $avgRisk = $countItems > 0 ? ($sumAvgRisk / $countItems) : 0.0;
+
+            // Populate the consolidated row with summed & aggregated metrics across all attempts
+            $bestRow['risk_score']          = round($maxRisk);
+            $bestRow['max_risk_score']      = round($maxRisk, 1);
+            $bestRow['avg_risk_score']      = round($avgRisk, 1);
             $bestRow['alarm_level']         = strtoupper($maxLevel !== 'none' ? $maxLevel : ($bestRow['alarm_level'] ?? 'NONE'));
-            $bestRow['total_alarms']        = max($totV, (int)($bestRow['total_alarms'] ?? 0));
-            $bestRow['total_violations']    = max($totV, (int)($bestRow['total_violations'] ?? 0));
-            $bestRow['gaze_away_count']     = max($gaze, (int)($bestRow['gaze_away_count'] ?? 0));
-            $bestRow['head_turn_count']     = max($head, (int)($bestRow['head_turn_count'] ?? 0));
-            $bestRow['no_face_count']       = max($noFace, (int)($bestRow['no_face_count'] ?? 0));
-            $bestRow['multiple_face_count'] = max($multi, (int)($bestRow['multiple_face_count'] ?? 0));
-            $bestRow['blink_count']         = max($blinks, (int)($bestRow['blink_count'] ?? 0));
-            $bestRow['attempt_count']       = count($items);
+            $bestRow['total_alarms']        = $totV;
+            $bestRow['total_violations']    = $totV;
+            $bestRow['gaze_away_count']     = $gaze;
+            $bestRow['head_turn_count']     = $head;
+            $bestRow['no_face_count']       = $noFace;
+            $bestRow['multiple_face_count'] = $multi;
+            $bestRow['total_blinks']        = $blinks;
+            $bestRow['blink_count']         = $blinks;
+            $bestRow['cheating_status']     = ($maxRisk >= 50 || $hasSuspicious) ? 'suspicious' : 'clean';
+            $bestRow['attempt_count']       = $countItems;
 
             $result[] = $bestRow;
         }

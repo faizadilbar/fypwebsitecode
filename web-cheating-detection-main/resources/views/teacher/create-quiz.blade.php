@@ -15,59 +15,173 @@
 
 @push('styles')
 <style>
-.tab-bar { display:flex; gap:4px; background:#F1F5F9; padding:4px; border-radius:12px; margin-bottom:24px; }
-.tab-btn { flex:1; padding:10px; border:none; border-radius:9px; font-size:13.5px; font-weight:600; cursor:pointer; transition:.2s; background:transparent; color:var(--text2); }
-.tab-btn.active { background:#fff; color:var(--primary); box-shadow:0 2px 8px rgba(0,0,0,.08); }
-.tab-panel { display:none; } .tab-panel.active { display:block; }
+.tab-bar {
+    display: flex;
+    gap: 6px;
+    background: #F1F5F9;
+    padding: 6px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+    border: 1px solid var(--border);
+}
+.tab-btn {
+    flex: 1;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    background: transparent;
+    color: var(--text2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: var(--font-display);
+}
+.tab-btn.active {
+    background: #ffffff;
+    color: #3D52A0;
+    box-shadow: 0 4px 16px rgba(61, 82, 160, 0.12);
+}
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
 
 /* QUESTION CARD */
-.q-card { background:#FFFFFF; border:1.5px solid var(--border); border-radius:12px; padding:16px; margin-bottom:12px; position:relative; box-shadow: 0 4px 16px rgba(61, 82, 160, 0.06); transition: all 0.2s ease; }
-.q-card:hover { border-color: var(--primary-light); box-shadow: 0 8px 24px rgba(61, 82, 160, 0.12); transform: translateY(-2px); }
-.q-card .q-num { position:absolute; top:-10px; left:14px; background:linear-gradient(135deg,var(--deep),var(--mid)); color:#fff; font-size:11px; font-weight:700; padding:2px 10px; border-radius:20px; }
-.q-type-badge { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:700; margin-bottom:10px; }
-.q-mcq  { background:#EFF6FF; color:#2563EB; }
-.q-short{ background:#ECFDF5; color:#059669; }
-.q-fill { background:#FFF7ED; color:#C2410C; }
+.q-card {
+    background: #FFFFFF;
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    padding: 20px 22px;
+    margin-bottom: 16px;
+    position: relative;
+    box-shadow: 0 6px 20px rgba(61, 82, 160, 0.04);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.q-card:hover {
+    border-color: #7091E6;
+    box-shadow: 0 10px 28px rgba(112, 145, 230, 0.14);
+    transform: translateY(-2px);
+}
+.q-card .q-num {
+    position: absolute;
+    top: -11px;
+    left: 16px;
+    background: linear-gradient(135deg, #3D52A0, #7091E6);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-family: var(--font-display);
+    box-shadow: 0 3px 10px rgba(61, 82, 160, 0.2);
+}
+.q-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 800;
+    margin-bottom: 12px;
+    font-family: var(--font-display);
+}
+.q-mcq  { background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; }
+.q-short{ background: #ECFDF5; color: #047857; border: 1px solid #A7F3D0; }
+.q-fill { background: #FFF7ED; color: #C2410C; border: 1px solid #FFEDD5; }
 
 /* AI PROGRESS */
-.ai-loader { text-align:center; padding:40px; display:none; }
-.ai-loader .loader-ring { width:60px; height:60px; border:4px solid #E0E7FF; border-top-color:var(--primary); border-radius:50%; animation:spin .9s linear infinite; margin:0 auto 16px; }
-.ai-steps { display:flex; flex-direction:column; gap:8px; margin-top:16px; max-width:300px; margin-left:auto; margin-right:auto; }
-.ai-step { display:flex; align-items:center; gap:10px; font-size:13px; color:var(--text3); }
-.ai-step.done { color:var(--green); } .ai-step.active { color:var(--primary); font-weight:600; }
-.ai-step i { width:16px; }
+.ai-loader {
+    text-align: center;
+    padding: 44px 20px;
+    display: none;
+    background: #F8FAFC;
+    border-radius: 20px;
+    border: 1.5px dashed var(--border);
+    margin-top: 18px;
+}
+.ai-loader .loader-ring {
+    width: 64px;
+    height: 64px;
+    border: 5px solid #E0E7FF;
+    border-top-color: #3D52A0;
+    border-radius: 50%;
+    animation: spin 0.85s linear infinite;
+    margin: 0 auto 18px;
+}
+.ai-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+    max-width: 340px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.ai-step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--text3);
+    padding: 8px 14px;
+    border-radius: 10px;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    transition: all 0.2s ease;
+}
+.ai-step.done { color: #059669; background: #ECFDF5; border-color: #A7F3D0; font-weight: 700; }
+.ai-step.active { color: #3D52A0; background: #EEF2FF; border-color: #C7D2FE; font-weight: 800; }
+.ai-step i { width: 16px; font-size: 14px; }
 
 /* MCQ OPTIONS */
-.mcq-options { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; }
-.mcq-opt-row { display:flex; align-items:center; gap:8px; }
-.mcq-opt-label { width:24px; height:24px; border-radius:6px; background:#E0E7FF; color:var(--primary); font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.mcq-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.mcq-opt-row { display: flex; align-items: center; gap: 8px; }
+.mcq-opt-label {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: #EEF2FF;
+    color: #3D52A0;
+    font-size: 12px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-family: var(--font-display);
+}
 
 /* MODAL BACKDROP */
 .modal-backdrop {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(15, 23, 42, 0.45);
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.65);
     backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 9999;
-    animation: fadeIn 0.2s ease-out;
+    z-index: 99999;
+    animation: fadeIn 0.25s ease-out;
 }
 
 /* MODAL CARD */
 .modal-card {
     background: #ffffff;
-    border-radius: 16px;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    width: 90%;
+    border-radius: 24px;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.25);
+    width: 92%;
     max-width: 600px;
     max-height: 90vh;
     overflow-y: auto;
-    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     border: 1px solid var(--border);
 }
 
@@ -75,33 +189,39 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 18px 24px;
+    padding: 20px 28px;
     border-bottom: 1px solid var(--border);
 }
 
 .modal-header h3 {
     margin: 0;
     font-size: 18px;
-    font-weight: 700;
+    font-weight: 800;
     color: var(--text1);
+    font-family: var(--font-display);
 }
 
 .modal-close {
-    background: none;
+    background: #F1F5F9;
     border: none;
-    font-size: 24px;
-    color: var(--text3);
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    font-size: 18px;
+    color: var(--text2);
     cursor: pointer;
-    transition: 0.15s;
-    padding: 0;
-    line-height: 1;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 .modal-close:hover {
-    color: var(--primary);
+    background: #FEF2F2;
+    color: #DC2626;
 }
 
 .modal-body {
-    padding: 24px;
+    padding: 28px;
 }
 
 @keyframes fadeIn {
@@ -110,53 +230,74 @@
 }
 
 @keyframes slideUp {
-    from { transform: translateY(12px) scale(0.98); opacity: 0; }
+    from { transform: translateY(16px) scale(0.96); opacity: 0; }
     to { transform: translateY(0) scale(1); opacity: 1; }
 }
 
 .q-actions-btn {
     position: absolute;
-    top: 12px;
-    right: 12px;
+    top: 14px;
+    right: 14px;
     display: flex;
-    gap: 6px;
+    gap: 8px;
 }
 
 .q-action-btn {
     border: none;
-    background: #fff;
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
+    background: #F8FAFC;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    color: var(--text3);
-    transition: 0.2s;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    color: var(--text2);
+    transition: all 0.2s ease;
     border: 1px solid var(--border);
 }
 
 .q-action-btn.edit:hover {
     background: #EFF6FF;
-    color: #2563EB;
+    color: #1D4ED8;
     border-color: #BFDBFE;
+    transform: scale(1.05);
 }
 
 .q-action-btn.delete:hover {
     background: #FEF2F2;
     color: #DC2626;
     border-color: #FCA5A5;
+    transform: scale(1.05);
 }
 </style>
 @endpush
 
 @section('content')
+<!-- HERO BANNER -->
+<div style="background: linear-gradient(135deg, #3D52A0 0%, #4F46E5 50%, #7E22CE 100%); border-radius: 24px; padding: 28px 32px; color: #fff; margin-bottom: 24px; box-shadow: 0 12px 36px rgba(79,70,229,0.22); position: relative; overflow: hidden;" class="fade-in">
+    <div style="position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.18); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.25); border-radius: 30px; padding: 5px 14px; font-size: 11.5px; font-weight: 700; color: #fff; margin-bottom: 12px;">
+                <i class="fas fa-magic" style="color: #A3F9B5;"></i> Smart AI Quiz Engine
+            </div>
+            <h1 style="font-family: var(--font-display); font-size: 26px; font-weight: 800; color: #fff; margin-bottom: 6px; letter-spacing: -0.5px;">Create & Generate Quiz</h1>
+            <p style="font-size: 13.5px; color: rgba(255,255,255,0.85); margin: 0; max-width: 500px;">Set up quiz details, generate questions via AI, or add custom manual questions with instant preview.</p>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <div style="background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); border-radius: 16px; padding: 12px 20px; text-align: center;">
+                <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: rgba(255,255,255,0.8); font-weight: 700;">Course ID</div>
+                <div style="font-family: var(--font-display); font-size: 20px; font-weight: 900; color: #fff;">#{{ $courseId }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- QUIZ META FORM -->
-<div class="card fade-in" id="metaCard">
-    <div class="card-header"><h3><i class="fas fa-info-circle" style="color:var(--primary);margin-right:8px;"></i>Quiz Details</h3></div>
-    <div class="card-body">
+<div class="card fade-in" id="metaCard" style="border-radius:20px; border:1px solid var(--border); box-shadow:0 8px 26px rgba(61,82,160,0.05);">
+    <div class="card-header" style="padding:20px 24px;"><h3><i class="fas fa-info-circle" style="color:var(--primary);margin-right:8px;"></i>Quiz Details</h3></div>
+    <div class="card-body" style="padding:24px;">
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;">
             <div class="form-group" style="margin:0;">
                 <label class="form-label">Quiz Name *</label>
@@ -382,31 +523,33 @@
 </div>
 
 <!-- QUIZ CODE MODAL -->
-<div id="quizCodeModal" class="modal-backdrop" style="display:none;">
-    <div class="modal-card" style="max-width: 400px; overflow: hidden; border-radius: 24px;">
+<div id="quizCodeModal" style="display:none; position:fixed; inset:0; top:0; left:0; width:100vw; height:100vh; background:rgba(15, 23, 42, 0.68); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); z-index:99999; align-items:center; justify-content:center; padding:20px; margin:0;">
+    <div class="modal-card" style="max-width: 420px; width:100%; overflow: hidden; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.2); animation: modalPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); margin: auto;">
         <!-- Header banner with gradient -->
-        <div id="codeModalHeader" style="padding: 32px 24px; text-align: center; color: white; background: linear-gradient(135deg, var(--primary), var(--secondary));">
-            <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
-                <i id="codeModalIcon" class="fas fa-check" style="font-size: 24px; color: white;"></i>
+        <div id="codeModalHeader" style="padding: 32px 24px; text-align: center; color: white; background: linear-gradient(135deg, var(--primary), var(--secondary)); position: relative;">
+            <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(255,255,255,0.22); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.15);">
+                <i id="codeModalIcon" class="fas fa-check" style="font-size: 26px; color: white;"></i>
             </div>
-            <h3 id="codeModalTitle" style="margin: 0 0 6px; font-size: 22px; font-weight: 800; color: white; border: none; padding: 0;">Quiz Saved!</h3>
-            <p style="margin: 0; font-size: 13px; opacity: 0.9;">Share this code with students</p>
+            <h3 id="codeModalTitle" style="margin: 0 0 6px; font-size: 24px; font-weight: 800; color: white; border: none; padding: 0; font-family: var(--font-display);">Quiz Saved!</h3>
+            <p style="margin: 0; font-size: 13.5px; opacity: 0.92; font-family: var(--font-body);">Share this unique code with your students</p>
         </div>
 
-        <div class="modal-body" style="padding: 28px 24px; text-align: center;">
-            <label id="codeLabel" style="font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text3); display: block; margin-bottom: 10px;">Quiz Code</label>
+        <div class="modal-body" style="padding: 28px 24px; text-align: center; background: #ffffff;">
+            <label id="codeLabel" style="font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text3); display: block; margin-bottom: 12px; font-family: var(--font-display);">Quiz Code</label>
             
             <!-- Code container -->
-            <div onclick="copyQuizCode()" style="position: relative; background: #F8FAFC; border: 1.5px solid var(--border); border-radius: 14px; padding: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#F1F5F9'; this.style.borderColor='var(--primary)'" onmouseout="this.style.background='#F8FAFC'; this.style.borderColor='var(--border)'">
-                <span id="displayQuizCode" style="font-family: monospace; font-size: 28px; font-weight: 800; letter-spacing: 4px; color: var(--text1);">ABCDEF</span>
-                <i class="far fa-copy" style="position: absolute; right: 20px; color: var(--text3); font-size: 20px;"></i>
+            <div onclick="copyQuizCode()" style="position: relative; background: #F8FAFC; border: 2px dashed #7091E6; border-radius: 16px; padding: 18px 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(112,145,230,0.08);" onmouseover="this.style.background='#F1F5F9'; this.style.borderColor='var(--primary)'" onmouseout="this.style.background='#F8FAFC'; this.style.borderColor='#7091E6'">
+                <span id="displayQuizCode" style="font-family: monospace; font-size: 32px; font-weight: 900; letter-spacing: 6px; color: #3D52A0;">ABCDEF</span>
+                <div style="position: absolute; right: 16px; background: #3D52A0; color: white; width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(61,82,160,0.25);">
+                    <i class="far fa-copy" style="font-size: 16px;"></i>
+                </div>
             </div>
             
-            <small id="copyMessage" style="display: block; margin-top: 10px; font-size: 12px; color: var(--green); font-weight: 700; opacity: 0; transition: 0.2s;"><i class="fas fa-check-circle"></i> Copied to clipboard!</small>
+            <small id="copyMessage" style="display: block; margin-top: 12px; font-size: 12.5px; color: #059669; font-weight: 800; opacity: 0; transition: all 0.2s;"><i class="fas fa-check-circle"></i> Copied to clipboard!</small>
         </div>
 
-        <div class="modal-footer" style="padding: 16px 24px; text-align: center; background: #F8FAFC; border-top: 1px solid var(--border);">
-            <button class="btn btn-primary" id="btnDoneRedirect" style="width: 100%; padding: 12px; font-size: 14.5px; font-weight: 700;">Done</button>
+        <div class="modal-footer" style="padding: 18px 24px; text-align: center; background: #F8FAFC; border-top: 1px solid var(--border);">
+            <button class="btn btn-primary" id="btnDoneRedirect" style="width: 100%; padding: 14px; font-size: 15px; font-weight: 800; border-radius: 14px; background: linear-gradient(135deg, #3D52A0, #7091E6); box-shadow: 0 6px 18px rgba(61,82,160,0.25);">Done</button>
         </div>
     </div>
 </div>
@@ -1004,6 +1147,10 @@ async function saveQuiz() {
         });
 
         if (res.status && res.quiz_code) {
+            // Restore Save Button state so spinner stops
+            btn.innerHTML = '<i class="fas fa-save"></i> Save Quiz';
+            btn.disabled  = false;
+
             // ── Save topic to localStorage (mirrors Flutter's local SQLite caching) ──
             const topicKey = `quizTopics_{{ $teacher['id'] ?? 0 }}_${courseId}`;
             let topicMap = JSON.parse(localStorage.getItem(topicKey) || '{}');
@@ -1045,8 +1192,21 @@ async function saveQuiz() {
             // Invalidate cache so next topic search re-fetches fresh list
             allCourseQuizzes = null;
 
-            // Show Code modal
-            document.getElementById('quizCodeModal').style.display = 'flex';
+            // Show Code modal centered in current viewport and automatically scroll screen directly to it
+            const modalEl = document.getElementById('quizCodeModal');
+            if (modalEl) {
+                modalEl.style.display = 'flex';
+                modalEl.style.position = 'fixed';
+                modalEl.style.top = '0';
+                modalEl.style.left = '0';
+                modalEl.style.width = '100vw';
+                modalEl.style.height = '100vh';
+                modalEl.style.zIndex = '99999';
+
+                // Automatically scroll screen to focus on quiz code popup
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                modalEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
         } else {
             alert('Error: ' + (res.message || 'Failed to save'));
             btn.innerHTML = '<i class="fas fa-save"></i> Save Quiz';

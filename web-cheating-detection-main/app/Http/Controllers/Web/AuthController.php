@@ -61,10 +61,62 @@ class AuthController extends Controller
             }
 
             $message = $data['message'] ?? 'Invalid credentials';
+            
+            // Check if account email is not verified (requires OTP popup)
+            $msgLower = strtolower($message);
+            if (str_contains($msgLower, 'verify') || str_contains($msgLower, 'otp') || str_contains($msgLower, 'unverified') || str_contains($msgLower, 'not verified')) {
+                return back()
+                    ->with('show_otp_modal', true)
+                    ->with('unverified_email', $input)
+                    ->withErrors(['email' => $message])
+                    ->withInput();
+            }
+
             return back()->withErrors(['email' => $message])->withInput();
 
         } catch (\Exception $e) {
             return back()->withErrors(['email' => 'Connection error: ' . $e->getMessage()])->withInput();
+        }
+    }
+
+    public function verifyOtp(Request $request)
+    {
+        $request->validate([
+            'email' => 'required',
+            'otp'   => 'required',
+        ]);
+
+        try {
+            $curlOpts = [
+                'force_ip_resolve' => 'v4',
+                'verify'           => false,
+                'curl'             => [CURLOPT_RESOLVE => ['bgnuf22eight.com:443:159.198.67.59']],
+            ];
+            $response = Http::withOptions($curlOpts)->timeout(30)->post("{$this->apiBase}/verify-otp", [
+                'email' => strtolower(trim($request->email)),
+                'otp'   => trim($request->otp),
+            ]);
+
+            $data = $response->json();
+
+            if ($data && (isset($data['status']) && $data['status'] == true)) {
+                return response()->json([
+                    'status'  => true,
+                    'message' => $data['message'] ?? 'Email verified successfully! You can now log in.',
+                    'user'    => $data['user'] ?? null,
+                ]);
+            }
+
+            return response()->json([
+                'status'  => false,
+                'message' => $data['message'] ?? 'Invalid OTP Code. Please check your Gmail inbox.',
+            ], 400);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Verification error: ' . $e->getMessage(),
+            ], 500);
         }
     }
 

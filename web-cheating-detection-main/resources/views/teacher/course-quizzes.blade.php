@@ -40,8 +40,15 @@
             </div>
         </div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-            <a href="{{ route('teacher.quiz.view', $quiz['quiz_code']) }}" class="btn btn-sm btn-secondary"><i class="fas fa-eye"></i> View</a>
-            <a href="{{ route('teacher.quiz.monitor', $quiz['quiz_code']) }}" class="btn btn-sm btn-primary"><i class="fas fa-satellite-dish"></i> Monitor</a>
+            <a href="{{ route('teacher.quiz.monitor', $quiz['quiz_code']) }}" style="background:#ECFDF5; color:#059669; border:1px solid #A7F3D0; font-weight:700; border-radius:20px; padding:6px 14px; font-size:12px; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+                <i class="fas fa-chart-line"></i> Live Monitor
+            </a>
+            <a href="{{ route('teacher.quiz.results', $quiz['quiz_id'] ?? $quiz['id']) }}" style="background:#F3E8FF; color:#7E22CE; border:1px solid #E9D5FF; font-weight:700; border-radius:20px; padding:6px 14px; font-size:12px; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+                <i class="fas fa-chart-bar"></i> Results Report
+            </a>
+            <a href="{{ route('teacher.quiz.view', $quiz['quiz_code']) }}" style="background:linear-gradient(135deg,#4F46E5,#6D28D9); color:#fff; font-weight:700; border-radius:20px; padding:6px 16px; font-size:12px; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+                View Quiz <i class="fas fa-arrow-right"></i>
+            </a>
         </div>
     </div>
 </div>

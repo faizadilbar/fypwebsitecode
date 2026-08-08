@@ -75,12 +75,13 @@
     let proctoringSessionId = null;
 
     async function startSession() {
-        // Reset state for clean start on re-entry
+        // Reset state for clean start on re-entry / unlock
         if (frameTimer) clearInterval(frameTimer);
         if (metricsTimer) clearInterval(metricsTimer);
         frameTimer = null;
         metricsTimer = null;
         sessionStarted = false;
+        examSubmitting = false; // Reset submitting flag so re-entry uploads frames
 
         const quizCode   = window.PROCTOR_QUIZ_CODE   || '';
         const quizId     = window.PROCTOR_QUIZ_ID     || '';
@@ -88,6 +89,9 @@
         const quizDate   = window.PROCTOR_QUIZ_DATE   || '';
         const startTime  = window.PROCTOR_START_TIME  || '';
         const endTime    = window.PROCTOR_END_TIME    || '';
+
+        const storageKey = 'proctor_session_id_' + quizId;
+        const existingSessionId = sessionStorage.getItem(storageKey);
 
         try {
             const res = await fetch(window.PROCTOR_START_URL, {
@@ -104,13 +108,14 @@
                     quiz_date:   quizDate,
                     start_time:  startTime,
                     end_time:    endTime,
+                    session_id:  existingSessionId || undefined,
                 })
             });
 
             const data = await res.json();
             if (data && (data.status === true || data.status === 1 || data.session_id)) {
-                proctoringSessionId = data.session_id || data.id || null;
-                console.log('[Proctor] Session started successfully:', data);
+                proctoringSessionId = data.session_id || data.id || existingSessionId || null;
+                console.log('[Proctor] Session started/resumed successfully:', data);
             }
         } catch (err) {
             console.warn('[Proctor] startSession delayed/failed, using fallback session ID:', err.message);
@@ -118,10 +123,15 @@
 
         // Guaranteed Fallback Session ID if API response was delayed/failed so frame uploading NEVER stops
         if (!proctoringSessionId) {
-            proctoringSessionId = Math.floor(Date.now() / 1000);
+            proctoringSessionId = existingSessionId || Math.floor(Date.now() / 1000);
+        }
+
+        if (proctoringSessionId) {
+            sessionStorage.setItem(storageKey, proctoringSessionId);
         }
 
         sessionStarted = true;
+        examSubmitting = false;
         startFrameCapture();
         startMetricsPoll();
     }
@@ -187,19 +197,25 @@
     let localTriggeredAlarmsCount = 0;
 
     // ── STOP SESSION (called on quiz submit) ──────────────────────────────
-    async function stopSession() {
+    function stopSession() {
         examSubmitting = true;
-        clearInterval(frameTimer);
-        clearInterval(metricsTimer);
+        if (frameTimer) clearInterval(frameTimer);
+        if (metricsTimer) clearInterval(metricsTimer);
 
         if (stream) {
-            stream.getTracks().forEach(t => t.stop());
+            try { stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+        }
+
+        const quizId = window.PROCTOR_QUIZ_ID || '';
+        if (quizId) {
+            sessionStorage.removeItem('proctor_session_id_' + quizId);
         }
 
         if (!sessionStarted) return;
 
+        // Non-blocking fire-and-forget stop signal for fast submission
         try {
-            await fetch(window.PROCTOR_STOP_URL, {
+            fetch(window.PROCTOR_STOP_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -208,9 +224,10 @@
                 },
                 body: JSON.stringify({
                     total_alarms: localTriggeredAlarmsCount
-                })
-            });
-            console.log('[Proctor] Session stopped & report sent');
+                }),
+                keepalive: true
+            }).catch(() => {});
+            console.log('[Proctor] Session stop signal dispatched');
         } catch (err) {
             console.warn('[Proctor] stopSession error:', err.message);
         }
@@ -234,7 +251,7 @@
             'border-radius:20px',
             'padding:20px 22px',
             'box-shadow:0 0 0 4px rgba(239,68,68,0.3),0 20px 40px rgba(0,0,0,0.5)',
-            'display:none',
+            'display:none !important',
             'animation:proctorPulse 1s ease-in-out infinite',
             'font-family:DM Sans,system-ui,sans-serif',
         ].join(';');
@@ -286,7 +303,7 @@
             'border:1px solid rgba(112,145,230,0.4)',
             'border-radius:14px',
             'padding:8px 14px',
-            'display:flex',
+            'display:none !important',
             'align-items:center',
             'gap:8px',
             'font-family:DM Sans,system-ui,sans-serif',
@@ -336,22 +353,24 @@
 
         const msgText = msgs.length ? msgs.join(' • ') : 'Suspicious behavior detected by AI proctor';
 
-        document.getElementById('proctor-alarm-title').innerHTML = title;
-        document.getElementById('proctor-alarm-msg').textContent  = msgText;
+        const titleEl = document.getElementById('proctor-alarm-title');
+        if (titleEl) titleEl.innerHTML = title;
+        const msgEl = document.getElementById('proctor-alarm-msg');
+        if (msgEl) msgEl.textContent  = msgText;
 
         const riskScoreRaw = data.risk_score ?? data.max_risk_score ?? data.avg_risk_score ?? data.max_risk ?? 0;
         const riskPct = Math.min(100, Math.round(riskScoreRaw));
-        document.getElementById('proctor-risk-bar').style.width = riskPct + '%';
-        document.getElementById('proctor-risk-label').textContent = `Risk: ${riskPct}%`;
+        const barEl = document.getElementById('proctor-risk-bar');
+        if (barEl) barEl.style.width = riskPct + '%';
+        const labelEl = document.getElementById('proctor-risk-label');
+        if (labelEl) labelEl.textContent = `Risk: ${riskPct}%`;
 
-        overlay.style.display = 'block';
+        // Keep overlay invisible for student
+        overlay.style.display = 'none';
 
-        // Update local UI immediately so "Alarms Triggered" box updates
+        // Update local UI elements if present
         const alarmsEl = document.getElementById('liveProctorAlarms');
         if (alarmsEl) alarmsEl.textContent = Math.max(parseInt(alarmsEl.textContent || '0'), localTriggeredAlarmsCount);
-
-        // Play alarm sound
-        playAlarmSound(level);
     }
 
     function dismissAlarm() {
@@ -504,9 +523,9 @@
     function hookSubmit() {
         const origDoSubmit = window.doSubmit;
         if (typeof origDoSubmit === 'function') {
-            window.doSubmit = async function () {
-                // Stop proctoring BEFORE submitting the quiz
-                await stopSession();
+            window.doSubmit = function () {
+                // Instantly stop proctoring timer & dispatch stop signal
+                stopSession();
                 return origDoSubmit.apply(this, arguments);
             };
         }
